@@ -19,7 +19,7 @@ module RailsPragmaticLogger
           controller: event.payload[:controller],
           action: event.payload[:action],
           method: event.payload[:method],
-          path: event.payload[:path],
+          path: strip_query_string(event.payload[:path]),
           params: get_params(event.payload[:params]),
           format: event.payload[:format]&.downcase,
           status: event.payload[:status],
@@ -41,6 +41,11 @@ module RailsPragmaticLogger
         return unless config.log_request_params
 
         (params.is_a?(Hash) ? params : params.to_unsafe_h).except(*INTERNAL_PARAMS)
+      end
+
+      def strip_query_string(path)
+        index = path.index('?')
+        index ? path[0, index] : path
       end
 
       def config

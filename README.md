@@ -5,6 +5,8 @@ extractions from rails_semantic_logger.
 
 * Rounds request times to miliseconds.
 
+* Strips query string from request path.
+
 ## Features
 
 [X] Logs Rails ActionController, ActiveRecord & ActionView notifications.
