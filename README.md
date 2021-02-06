@@ -7,13 +7,17 @@ extractions from rails_semantic_logger.
 
 * Strips query string from request path.
 
+* Uses ActiveSupport::BacktraceCleaner to clean Rails & gems path in backtrace.
+
 ## Features
 
 [X] Logs Rails ActionController, ActiveRecord & ActionView notifications.
 
 [X] Rails.logger always generate JSON (via custom formatter).
 
-[ ] Log exceptions with complete backtrace and nested cause exceptions.
+[X] Log exceptions with complete backtrace.
+
+[ ] Log nested cause exceptions.
 
 [ ] Turn on SQL logging statically or dinamically (protected configuration / request param).
 

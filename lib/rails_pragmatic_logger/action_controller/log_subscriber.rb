@@ -14,7 +14,21 @@ module RailsPragmaticLogger
       # end
 
       def process_action(event)
-        logger.info({
+        if event.payload[:exception]
+          logger.error(build_log(event).merge(extract_exception(event.payload)))
+        else
+          logger.info(build_log(event))
+        end
+      end
+
+      private
+
+      def logger
+        ::ActionController::Base.logger
+      end
+
+      def build_log(event)
+        {
           source: 'action_controller',
           controller: event.payload[:controller],
           action: event.payload[:action],
@@ -28,19 +42,46 @@ module RailsPragmaticLogger
           db: event.payload[:db_runtime]&.round,
           view: event.payload[:view_runtime]&.round,
           total: event.duration&.round,
-        }.compact)
-      end
-
-      private
-
-      def logger
-        ::ActionController::Base.logger
+        }.compact
       end
 
       def get_params(params)
         return unless config.log_request_params
 
         (params.is_a?(Hash) ? params : params.to_unsafe_h).except(*INTERNAL_PARAMS)
+      end
+
+      def extract_exception(payload)
+        return {} unless payload[:exception]
+
+        exception_class, message = payload[:exception]
+
+        {
+          status: get_error_status_code(exception_class),
+          exception: {
+            class: exception_class,
+            message: message,
+            backtrace: backtrace_cleaner.clean(payload[:exception_object]&.backtrace)
+          }
+        }
+      end
+
+      def backtrace_cleaner
+        @backtrace_cleaner ||= begin
+          ActiveSupport::BacktraceCleaner.new.tap do |cleaner|
+            cleaner.remove_silencers!
+            cleaner.remove_filters!
+            cleaner.add_filter { |line| line.gsub(Rails.root.to_s, '') }
+            Gem.path.each do |path|
+              cleaner.add_filter { |line| line.gsub(path, '') }
+            end
+          end
+        end
+      end
+
+      def get_error_status_code(exception)
+        status = ActionDispatch::ExceptionWrapper.rescue_responses[exception]
+        Rack::Utils.status_code(status)
       end
 
       def strip_query_string(path)
