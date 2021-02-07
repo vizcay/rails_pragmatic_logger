@@ -21,7 +21,9 @@ module RailsPragmaticLogger
       # TODO: investigate further
       config.middleware.delete(Rails::Rack::Logger)
 
-      logger = ActiveSupport::Logger.new(config.default_log_file)
+      log_file = config.respond_to?(:default_log_file) ?
+        config.default_log_file : rails4_default_log_file(config)
+      logger = ActiveSupport::Logger.new(log_file)
       logger.formatter = RailsPragmaticLogger::JsonFormatter.new
       Rails.logger = logger
     end
@@ -45,6 +47,18 @@ module RailsPragmaticLogger
         RailsPragmaticLogger::ActionView::LogSubscriber,
         :action_view
       )
+    end
+
+    def rails4_default_log_file(config)
+      path = config.paths["log"].first
+      unless File.exist? File.dirname path
+        FileUtils.mkdir_p File.dirname path
+      end
+
+      File.open(path, "a").tap do |f|
+        f.binmode
+        f.sync = true
+      end
     end
   end
 end
