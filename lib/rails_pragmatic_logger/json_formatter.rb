@@ -1,5 +1,5 @@
 module RailsPragmaticLogger
-  class JsonFormatter < ActiveSupport::Logger::SimpleFormatter
+  class JsonFormatter
     def call(severity, timestamp, _progname, message)
       output = to_hash(severity, timestamp, message)
       if config&.pretty_print_json
