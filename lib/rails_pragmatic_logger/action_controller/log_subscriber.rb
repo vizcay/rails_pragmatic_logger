@@ -61,9 +61,15 @@ module RailsPragmaticLogger
           exception: {
             class: exception_class,
             message: message,
-            backtrace: backtrace_cleaner.clean(payload[:exception_object]&.backtrace)
-          }
+            backtrace: get_backtrace(payload[:exception_object])
+          }.compact
         }
+      end
+
+      def get_backtrace(exception_object)
+        return unless exception_object
+
+        backtrace_cleaner.clean(exception_object.backtrace)
       end
 
       def backtrace_cleaner
