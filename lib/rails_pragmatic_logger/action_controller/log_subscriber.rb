@@ -34,7 +34,7 @@ module RailsPragmaticLogger
           action: event.payload[:action],
           method: event.payload[:method],
           path: strip_query_string(event.payload[:path]),
-          params: get_params(event.payload[:params]),
+          params: get_params(event.payload[:params], event.duration&.round),
           format: event.payload[:format]&.downcase,
           status: event.payload[:status],
           ip: event.payload[:ip],
@@ -45,8 +45,10 @@ module RailsPragmaticLogger
         }.compact
       end
 
-      def get_params(params)
+      def get_params(params, duration)
         return unless config.log_request_params
+        return if config.log_request_params_threshold &&
+          duration && config.log_request_params_threshold > duration
 
         (params.is_a?(Hash) ? params : params.to_unsafe_h).except(*INTERNAL_PARAMS)
       end
