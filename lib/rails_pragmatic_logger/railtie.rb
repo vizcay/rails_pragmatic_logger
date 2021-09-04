@@ -1,3 +1,6 @@
+require "action_controller/log_subscriber"
+require "active_record/log_subscriber"
+require "action_view/log_subscriber"
 require_relative "json_formatter"
 require_relative "patch_tagged_logging"
 require_relative "action_controller/log_subscriber"
